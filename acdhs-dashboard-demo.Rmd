@@ -32,9 +32,11 @@ cn <- function(x) colnames(x)
 
 <br>
 <br>
-<font size = "5">
+<font size = "4">
+<p>This dashboard shows a handful of data visualization use cases for the Unstructured Data Analytics initiative of the Allegheny County Department of Public Health. This was developed by staff at Chapin Hall and its partners at Argonne National Laboratory.</p>
 <ul>
 <li> This was made with the free and open-source [R programming language](https://www.r-project.org/about.html)
+<li> Code-driven dashboards like this can be automatically generated to be custom for any given user, and updated with new inputs, analysis, and visualization as part of the full analysis pipeline
 <li> The code and data used to create this example can be found&mdash;and reused and contributed to&mdash;at [this open-source GitHub repository](https://github.com/chapinhall/acdhs-demo)
 <li> **Note** that all data here is fake, intended only for the purpose of illustration
 </ul>
