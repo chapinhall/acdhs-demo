@@ -1,6 +1,6 @@
 # Background 
 
-The code in this repository builds a dashboard--downloadable at [this link](https://github.com/chapinhall/acdhs-demo/raw/master/acdhs-dashboard-demo.html)--demonstrating for the Allegheny County Department of Human Service's RFP on unstructured data analytics. These materials are offered under the permissive [BSD-3 software license](https://opensource.org/licenses/BSD-3-Clause).
+The code in this repository builds a dashboard--viewable at [this link](https://cdn.rawgit.com/chapinhall/acdhs-demo/master/acdhs-dashboard-demo.html)--demonstrating for the Allegheny County Department of Human Service's RFP on unstructured data analytics. These materials are offered under the permissive [BSD-3 software license](https://opensource.org/licenses/BSD-3-Clause).
 
 # Tools
 
