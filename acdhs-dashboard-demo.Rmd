@@ -1,0 +1,130 @@
+---
+title: "ACDHS Dashboard Demo"
+author: "Chapin Hall"
+date: "August 6, 2018"
+output: 
+  flexdashboard::flex_dashboard:
+    storyboard: true
+    social: menu
+    source: embed
+    logo: img/AGC-triangle-small.png
+    css: flexdash.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warnings = FALSE, error = FALSE)
+
+### Load and--if necessary--install packages ----------------------------------#
+package.list <- c("flexdashboard", "data.table", "dplyr", "stringr", "rgdal",
+                  "MASS", "plotly", "leaflet")
+for (p in package.list){
+  if (!p %in% installed.packages()[, "Package"]) install.packages(p)
+  library(p, character.only = TRUE)
+}
+
+### Load custom functions -----------------------------------------------------#
+grepv <- function(p, x, ...) grep(p, x, value = TRUE, ...)
+cn <- function(x) colnames(x)
+
+```
+
+### Dashboard Demonstration
+
+<br>
+<br>
+<font size = "5">
+<ul>
+<li> This was made with the free and open-source [R programming language](https://www.r-project.org/about.html)
+<li> The code and data used to create this example can be found&mdash;and reused and contributed to&mdash;at [this open-source GitHub repository](https://github.com/chapinhall/acdhs-demo)
+<li> **Note** that all data here is fake, intended only for the purpose of illustration
+</ul>
+</font>
+
+### Case-Level Visualization
+
+![](img/viz_sentiment-cans-status.png)
+
+***
+
+<ul>
+<li> This figure combines
+  <ul>
+  <li> text-mined sentiment score
+  <li> text-mined key topics of relevance
+  <li> indication of institutional contacts, including DHS investigation and intervention
+  </ul>
+<li> Low sentiment scores could be used to flag potential consultation opportunities with a nurse or substance abuse counselor, when combined with key topic combinations
+<li> Topic and sentiment scores can help supervisors consider check-in priority and frequency, and quickly review case trajectories
+<li> Persistence of key topics can raise flags to QA teams to complete additional modules, e.g. related to housing concerns
+</ul>
+
+### System-Level Trajectory Visualization
+
+![](img/dually-involved-youth_traj-viz_3-cluster.png)
+
+***
+
+* Trajectory visualizations can show pathways of cases through institutional contacts
+* This combined plot shows how clustering methods were used to classify clients into distinct groupings based on the start, duration, intermittence, and types of involvements
+
+### System-Level Topic Map
+
+```{r display zipcode map with topic layers}
+# Get zipcode boundary data
+zips <- readOGR(dsn = "data", layer = "Allegheny_County_Zip_Code_Boundaries", verbose = FALSE)
+
+# Sample topics:
+topics <- c("Pregnant", "Domestic Violence", "Opiates", "Suicide", "Low Income")
+sigma <- matrix(c(1.0, 0.2, 0.1, 0.2, 0.4,
+                  0.2, 1.0, 0.3, 0.4, 0.5,
+                  0.1, 0.3, 1.0, 0.4, 0.6,
+                  0.2, 0.4, 0.4, 1.0, 0.4,
+                  0.4, 0.5, 0.6, 0.4, 2.0), nrow = 5)
+mu <- c(0.8, 1.5, 0.0, -1.0, 1.0)
+
+# Draw correlated values
+set.seed(8062018)
+draws <- mvrnorm(n = nrow(zips@data), mu = mu, Sigma = sigma)
+
+# Put this on a 0-100 scale, label, and arrange in order (to give a pattern to matching with zips)
+draws <- round((draws - min(draws))/(max(draws) - min(draws))*100, 1)
+colnames(draws) <- topics
+draws <- arrange(as.data.frame(draws), -`Low Income`)
+
+# Attach values to zipcodes
+zips@data <-
+  cbind(zips@data, draws) %>% 
+  within(topicPop <- paste0("<b>Topic Scores for Zip ", ZIP, "</b>:<br>",
+                         "Pregnant: ",          sprintf("%1.1f", Pregnant), "<br>",
+                         "Domestic Violence: ", sprintf("%1.1f", `Domestic Violence`), "<br>",
+                         "Opiates: ",           sprintf("%1.1f", Opiates), "<br>",
+                         "Suicide: ",           sprintf("%1.1f", Suicide), "<br>",
+                         "Low Income: ",        sprintf("%1.1f", `Low Income`)))
+palBin_blue <- colorBin(palette = "Blues", domain = c(0, 100), bins = 5)
+myOpacity <- 0.7
+
+leaflet(data = zips) %>% # width = "100%"
+  #addTiles() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(group = "Pregnant", fillColor = ~palBin_blue(Pregnant),
+              popup = ~topicPop, weight = 2.0, fillOpacity = myOpacity) %>%
+  addPolygons(group = "Domestic Violence", fillColor = ~palBin_blue(`Domestic Violence`),
+              popup = ~topicPop, weight = 2.0, fillOpacity = myOpacity) %>%
+  addPolygons(group = "Opiates", fillColor = ~palBin_blue(Opiates),
+              popup = ~topicPop, weight = 2.0, fillOpacity = myOpacity) %>%
+  addPolygons(group = "Suicide", fillColor = ~palBin_blue(Suicide),
+              popup = ~topicPop, weight = 2.0, fillOpacity = myOpacity) %>%
+  addPolygons(group = "Low Income", fillColor = ~palBin_blue(`Low Income`),
+              popup = ~topicPop, weight = 2.0, fillOpacity = myOpacity) %>%
+  addLayersControl(baseGroups = c("Pregnant", "Domestic Violence", "Opiates", "Suicide", "Low Income"),
+                   options = layersControlOptions(collapsed = FALSE)) %>%
+  addLegend(position = "bottomleft", colors = unique(palBin_blue(0:100)),
+            title = "Topic Scores",
+            labels = c("0-20", "20-40", "40-60", "60-80", "80-100"))
+```
+
+***
+
+* Dynamic maps offer panning, zooming, and "popup" annotations that allow exploration of geographic trends in various case topics and combinations thereof, such as "opiod" and "overdose"
+* This map shows an example of multiple topic layers for Alleghency county zip codes, with more information available through clicking 
+
