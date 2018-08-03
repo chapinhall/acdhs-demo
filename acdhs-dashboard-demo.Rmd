@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warnings = FALSE, error = F
 
 ### Load and--if necessary--install packages ----------------------------------#
 package.list <- c("flexdashboard", "data.table", "dplyr", "stringr", "rgdal",
-                  "MASS", "plotly", "leaflet")
+                  "MASS", "plotly", "leaflet", "ggplot2", "scales")
 for (p in package.list){
   if (!p %in% installed.packages()[, "Package"]) install.packages(p)
   library(p, character.only = TRUE)
@@ -44,7 +44,7 @@ cn <- function(x) colnames(x)
 
 ### Case-Level Visualization
 
-![](img/viz_sentiment-cans-status.png)
+<img width = "50%" src = "img/viz_sentiment-cans-status.png">
 
 ***
 
@@ -55,19 +55,62 @@ cn <- function(x) colnames(x)
   <li> text-mined key topics of relevance
   <li> indication of institutional contacts, including DHS investigation and intervention
   </ul>
-<li> Low sentiment scores could be used to flag potential consultation opportunities with a nurse or substance abuse counselor, when combined with key topic combinations
-<li> Topic and sentiment scores can help supervisors consider check-in priority and frequency, and quickly review case trajectories
+<li> Low sentiment scores could be used to trigger specific interventions or referrals to other practitioners, when combined with key topic combinations
+<li> Topic and sentiment scores can help supervisors quickly review timely characteristics of individual cases or a worker's entire caseload
 <li> Persistence of key topics can raise flags to QA teams to complete additional modules, e.g. related to housing concerns
 </ul>
 
-### System-Level Trajectory Visualization
+### System-Level Trajectory Visualization {data-commentary-width=500}
 
-![](img/dually-involved-youth_traj-viz_3-cluster.png)
+```{r generate prevalence figure to match trajectory viz}
+df <- 
+  data.frame(clus = c("Cluster 1", "Cluster 2", "Cluster 3"),
+             freq = c(5442, 679, 227)) %>% 
+  mutate(pct = freq/sum(freq),
+         label = paste0("n = ", prettyNum(freq, big.mark = ",")))
+myplot <-
+  ggplot(df, aes(x = clus, y = pct, fill = clus)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = label), vjust = 1) +
+  scale_y_continuous(labels = percent) +
+  labs(title = "Prevalence of Cluster Types in Population",
+       x = "", y = "% of Population") +
+  theme(legend.position = "none",
+        axis.title = element_text(size = 12),
+        axis.text = element_text(size = 11))
+ggsave("img/dually-involved-youth_traj-viz_3-cluster--prevalence.png")
+```
 
+<!-- ![](img/dually-involved-youth_traj-viz_3-cluster.png) -->
+<img width = "45%" hspace = "20" src = "img/dually-involved-youth_traj-viz_3-cluster.png">
+<img width = "35%" hspace = "20" src = "img/dually-involved-youth_traj-viz_3-cluster--prevalence.png">
+
+  
 ***
 
-* Trajectory visualizations can show pathways of cases through institutional contacts
-* This combined plot shows how clustering methods were used to classify clients into distinct groupings based on the start, duration, intermittence, and types of involvements
+<font size = "3">
+<ul>
+<li> Trajectory visualizations can show pathways of cases through institutional contacts
+<li> Each individual trajectory is shown as a (narrow) horizontal line. Each subplot shows hundreds of individual cases, with cases sorted by their starting state, then the type and duration of the state that follows.
+<li> These plots show the starting age, duration, sequence, and number of spells for different institutional contacts
+<li> The multiple figures show different distinct cluster patterns. In this example:
+  <ul>
+  <li> "Cluster 1" represents individuals with short involvements which start at a range of ages
+  <li> "Cluster 2" represents individuals with long, unbroken stints in child welfare cases. A third of this group has out-of-home placements, almost always at early ages.
+  <li> "Cluster 3"--the smallest group--represents individuals with long stints of out-of home placements, generally starting at early ages.
+  </ul>
+<li> These institutional involvement cluster types can also be displayed in tables or maps
+</ul>
+</font>
+
+### Macro-Planning
+
+```{r generate macro planning data}
+n <- 100
+mp <- data.frame()
+
+```
+
 
 ### System-Level Topic Map
 
