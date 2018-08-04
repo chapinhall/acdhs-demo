@@ -1,6 +1,6 @@
-# Background 
+# Background
 
-The code in this repository builds a dashboard--viewable at [this link](https://cdn.rawgit.com/chapinhall/acdhs-demo/master/acdhs-dashboard-demo.html)--demonstrating for the Allegheny County Department of Human Service's RFP on unstructured data analytics. These materials are offered under the permissive [BSD-3 software license](https://opensource.org/licenses/BSD-3-Clause).
+The code in this repository builds a dashboard--viewable at [this link](https://chapinhall.github.io/acdhs-demo/acdhs-dashboard-demo.html)--demonstrating for the Allegheny County Department of Human Service's RFP on unstructured data analytics. These materials are offered under the permissive [BSD-3 software license](https://opensource.org/licenses/BSD-3-Clause).
 
 # Tools
 
@@ -19,4 +19,3 @@ All of these packages are free, have broad user bases and community support, and
 # Contributing
 
 If you are interested in reusing or contributing to this repository, you will need to know how to use GitHub and the git version control system. For free and interactive ways to learn, we recommend the [GitHub learning lab](https://lab.github.com/), and [DataCamp's course on git for data science](https://www.datacamp.com/courses/introduction-to-git-for-data-science).
-
