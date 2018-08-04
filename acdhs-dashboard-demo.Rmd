@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warnings = FALSE, error = F
 
 ### Load and--if necessary--install packages ----------------------------------#
 package.list <- c("flexdashboard", "data.table", "dplyr", "stringr", "rgdal",
-                  "MASS", "plotly", "leaflet", "ggplot2", "scales")
+                  "MASS", "plotly", "leaflet", "ggplot2", "scales", "DT")
 for (p in package.list){
   if (!p %in% installed.packages()[, "Package"]) install.packages(p)
   library(p, character.only = TRUE)
@@ -106,11 +106,57 @@ ggsave("img/dually-involved-youth_traj-viz_3-cluster--prevalence.png")
 ### Macro-Planning
 
 ```{r generate macro planning data}
-n <- 100
-mp <- data.frame()
-
+mpn <- 500
+Draw1to100 <- function(n, pwr) round(runif(n)^pwr*100, 0)
+planets <- c("Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Neptune", "Uranus")
+mp <- data.frame(ID = str_pad(round(runif(mpn)*1e7, 0), width = 7, side = "left", pad = "0"),
+                 AQ = paste0(sample(c(2017, 2018), mpn, replace = TRUE),
+                              "-Q",
+                             sample(1:4, mpn, replace = TRUE)),
+                 Region = factor(sample(planets, mpn, replace = TRUE), levels = planets),
+                 Sentiment = Draw1to100(mpn, 1.0),
+                 MH = Draw1to100(mpn, 2.0),
+                 DA = Draw1to100(mpn, 2.0),
+                 DV = Draw1to100(mpn, 2.0),
+                 H  = Draw1to100(mpn, 2.0),
+                 E  = Draw1to100(mpn, 0.5),
+                 M  = Draw1to100(mpn, 1.0),
+                 SC = Draw1to100(mpn, 0.5)) %>%
+  filter(!AQ %in% c("2018-Q3", "2018-Q4"))
 ```
 
+```{r place and format dynamic table}
+# Develop color scale for quantiles of all top
+# /!\ An alternative scheme might just be for 1-10, 11-20, etc as hard divisions
+topics <- c("MH", "DA", "DV", "H", "E", "M", "SC")
+topic_brks <- quantile(select(mp, one_of(topics)), probs = seq(.05, .95, .05), na.rm = TRUE)
+# Develop colors as increasing shades of blue
+topic_clrs <-
+  round(seq(255, 40, length.out = length(topic_brks) + 1), 0) %>%
+  paste0("rgb(", ., ",", ., ",255)")
+topicNames <- c("Mental Health", "Drug/Alcohol", "Domestic Violence", "Housing",
+                "Education", "Medical", "Social Connection")
+
+sent_brks <- quantile(mp$Sentiment, probs = seq(.05, .95, .05), na.rm = TRUE)
+sent_clrs <- colorRampPalette(c("firebrick2", "forestgreen"))(length(sent_brks) + 1)  
+  
+colnames(mp) <- c("ID", "Assessment Quarter", "Region", "Sentiment", topicNames)
+rownames(mp) <- NULL
+datatable(mp,
+          extensions = 'Buttons',
+          filter = 'top',
+          rownames = FALSE,
+          options = list(dom = 'Bfrtip',
+                         buttons = list('copy', 'print', list(
+                           extend = 'collection',
+                           buttons = c('csv', 'excel', 'pdf'),
+                           text = 'Download')),
+                         pageLength = 20)) %>% 
+    formatStyle("Sentiment", backgroundColor = styleInterval(sent_brks,  sent_clrs), color = "white") %>% 
+    formatStyle(topicNames,  backgroundColor = styleInterval(topic_brks, topic_clrs))
+```
+
+*** 
 
 ### System-Level Topic Map
 
