@@ -6,7 +6,7 @@
 
 ### Load and--if necessary--install packages ----------------------------------#
 package.list <- c("data.table", "dplyr", "openxlsx", "devtools", "ggplot2", "scales",
-                  "plotly", "ggrepel", "grid", "gridExtra")
+                  "plotly", "crosstalk", "ggrepel", "grid", "gridExtra")
 for (p in package.list){
   if (!p %in% installed.packages()[, "Package"]){
     if (p == "ggplot2"){
@@ -18,6 +18,9 @@ for (p in package.list){
   library(p, character.only = TRUE)
 }
 setwd("~/GitHub/acdhs-demo/")
+
+cn <- function(x) colnames(x)
+grepv <- function(p, x, ...) grep(p, x, value = TRUE, ...)
 
 #------------------------------------------------------------------------------#
 ### Build case-level data ------------------------------------------------------
@@ -90,12 +93,16 @@ plot_sent <-
 ### Topic scores --------------------------------------------------------------#
 
 dt_topic <- 
-  dt[variable %in% c("Truancy", "Substance Use", "Domestic Violence")] %>% 
+  dt[!variable %in% c(statusVars, grepv("^cans", dt$variable))] %>% 
   .[, value := value + runif(nrow(.))*10] # Add a bit of noise for illustration
+dt_topic_select <- 
+  dt_topic %>% 
+  filter(variable %in% c("Domestic Violence", "Substance Use", "Truancy")) %>% 
+  data.table()
 plot_topic <-
-  ggplot(dt_topic, aes(x = Date, y = value, color = factor(variable))) + 
+  ggplot(dt_topic_select, aes(x = Date, y = value, color = factor(variable))) + 
     geom_line(size = 1) +
-    geom_label_repel(data = dt_topic[Date == max(Date)],
+    geom_label_repel(data = dt_topic_select[Date == max(Date)],
               aes(label = variable), size = 6, hjust = 1, vjust = -5) +
     myXAxis + 
     scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # sec.axis = dup_axis(name = ""), position = "right"
@@ -138,9 +145,41 @@ dev.off()
 
 ### Generate interactive topic plot -------------------------------------------#
 # See the code under section 4.2.5 of this link: https://plotly-book.cpsievert.me/linking-views-without-shiny.html
+# Actually, this presentation--specifically slide 6--has the code which generates
+# the plot: https://workshops.cpsievert.me/20171118/slides/day2/#6
 
-### Create fully interactive analog for 
+sd <- SharedData$new(dt_topic, key = ~variable, "Select a Topic")
+base <-
+  plot_ly(sd, color = I("black"), height = 400) %>% 
+  group_by(variable)
+topic_avg <-
+  base %>%
+  group_by(variable) %>% 
+  summarize(Score = round(mean(value), 1)) %>%
+  arrange(Score) %>%
+  add_bars(x = ~Score, y = ~factor(variable, levels = variable), hoverinfo = "x+y") %>%
+  layout(
+    barmode = "overlay",
+    xaxis = list(title = "Average Topic Score"),
+    yaxis = list(title = "")) 
+topic_trend <-
+  base %>%
+  mutate(Score = round(value, 1)) %>% 
+  add_lines(x = ~Date, y = ~Score, alpha = 0.3, text = ~variable, hoverinfo = "text") %>%
+  layout(xaxis = list(title = ""))
+
+topic_viz <- 
+  subplot(topic_avg, topic_trend, 
+        titleX = TRUE, widths = c(0.3, 0.7)) %>% 
+  layout(margin = list(l = 120)) %>%
+  hide_legend() %>%
+  highlight(persistent = TRUE, selectize = TRUE, dynamic = TRUE)
+save(topic_viz, file = "img/interactive_topic_viz.Rda")
+
+
+### Create fully interactive analog for case-level visualization --------------#
 # See this link for arranging subplots: https://plotly-book.cpsievert.me/merging-plotly-objects.html
+# Note the ability to use "plotly_empty()" to fill a space in the grid with a blank
 plotly_sent   <- ggplotly(plot_sent)
 plotly_topic  <- ggplotly(plot_topic)
 plotly_status <- ggplotly(plot_status)
@@ -148,3 +187,13 @@ plotly_status <- ggplotly(plot_status)
   # reimplemented in plotly syntax proper
   # /!\ The labels of the field names should also be made more readable
 subplot(plotly_sent, plotly_topic, plotly_status, nrows = 3)
+
+# Attempt inclusion of dynamic topic selection
+subplot(plotly_empty(), plotly_sent,
+        topic_avg, topic_trend, 
+        plotly_empty(), plotly_status,
+        nrows = 3,
+        titleX = TRUE, widths = c(0.3, 0.7)) %>% 
+  layout(margin = list(l = 120)) %>%
+  hide_legend() %>%
+  highlight(persistent = TRUE, selectize = TRUE, off = "plotly_deselect")
