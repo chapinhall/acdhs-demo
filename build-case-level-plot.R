@@ -5,11 +5,19 @@
 #------------------------------------------------------------------------------#
 
 ### Load and--if necessary--install packages ----------------------------------#
-package.list <- c("data.table", "dplyr", "openxlsx", "ggplot2", "scales", "ggrepel", "grid", "gridExtra")
+package.list <- c("data.table", "dplyr", "openxlsx", "devtools", "ggplot2", "scales",
+                  "plotly", "ggrepel", "grid", "gridExtra")
 for (p in package.list){
-  if (!p %in% installed.packages()[, "Package"]) install.packages(p)
+  if (!p %in% installed.packages()[, "Package"]){
+    if (p == "ggplot2"){
+      devtools::install_github("hadley/ggplot2") # This installation has the dev version of ggplotly()
+    } else {
+      install.packages(p)  
+    }
+  }
   library(p, character.only = TRUE)
 }
+setwd("~/GitHub/acdhs-demo/")
 
 #------------------------------------------------------------------------------#
 ### Build case-level data ------------------------------------------------------
@@ -123,3 +131,20 @@ grid.draw(rbind(ggplotGrob(plot_sent),
                 ggplotGrob(plot_topic),
                 ggplotGrob(plot_status), size = "last"))
 dev.off()
+
+#------------------------------------------------------------------------------#
+### Pilot more interactive plot elements ---------------------------------------
+#------------------------------------------------------------------------------#
+
+### Generate interactive topic plot -------------------------------------------#
+# See the code under section 4.2.5 of this link: https://plotly-book.cpsievert.me/linking-views-without-shiny.html
+
+### Create fully interactive analog for 
+# See this link for arranging subplots: https://plotly-book.cpsievert.me/merging-plotly-objects.html
+plotly_sent   <- ggplotly(plot_sent)
+plotly_topic  <- ggplotly(plot_topic)
+plotly_status <- ggplotly(plot_status)
+  # /!\ Note that certain formatting elements like geom_GeomLabelRepel need to be 
+  # reimplemented in plotly syntax proper
+  # /!\ The labels of the field names should also be made more readable
+subplot(plotly_sent, plotly_topic, plotly_status, nrows = 3)
