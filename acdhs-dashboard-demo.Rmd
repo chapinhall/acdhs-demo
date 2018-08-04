@@ -44,7 +44,12 @@ cn <- function(x) colnames(x)
 
 ### Case-Level Visualization
 
-<img width = "50%" src = "img/viz_sentiment-cans-status.png">
+<!-- <img width = "30%" src = "img/viz_sentiment-cans-status.png"> -->
+```{r place interactive topic viz, out.width='50%'}
+load("img/interactive_topic_viz.Rda")
+topic_viz
+```
+
 
 ***
 
