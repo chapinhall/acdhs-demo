@@ -123,11 +123,18 @@ plot_status <-
     scale_fill_manual(values = c("Treat" = "blue", "Non-Treat" = "plum")) + 
     scale_y_continuous(breaks = unique(dt_status$nStatus), labels = levels(dt_status$fStatus)) + # position = "right"
     myXAxis +
-    theme_minimal() + 
-    myTheme +
-    myMargin
+    theme_minimal()
 
-### Combine plots -------------------------------------------------------------#
+plotly_status <- ggplotly(plot_status)
+  # Convert before adding formatting that otherwise doesn't work with the other plotly elements
+
+plot_status <-
+  plot_status + 
+  myTheme +
+  myMargin
+  # Complete the formatting of the static image
+
+### Combine the static plots --------------------------------------------------#
 
 # See this forum post for guidance on an example of adding a title via textGrob():
 #  https://stackoverflow.com/questions/31640916/how-can-i-add-a-title-to-a-tablegrob-plot
@@ -140,8 +147,20 @@ grid.draw(rbind(ggplotGrob(plot_sent),
 dev.off()
 
 #------------------------------------------------------------------------------#
-### Pilot more interactive plot elements ---------------------------------------
+### Develop interactive plot analogs -------------------------------------------
 #------------------------------------------------------------------------------#
+
+### Generate interactive sentiment plot ---------------------------------------#
+
+plotly_sent <-
+  plot_ly(data = dt_sent, x = ~Date) %>% 
+  add_lines(y = ~value,   line = list(color = "green")) %>% 
+  add_lines(y = ~neg_val, line = list(color = "red") ) %>% 
+  add_markers(y = ~value, marker = list(color = "black")) %>% 
+  layout(title = "Multi-Domain View of Case #123456789",
+         showlegend = FALSE,
+         xaxis = list(title = "", showticklabels = FALSE), # only allowing the status plot to show x-axis
+         yaxis = list(title = "Sentiment Score"))
 
 ### Generate interactive topic plot -------------------------------------------#
 # See the code under section 4.2.5 of this link: https://plotly-book.cpsievert.me/linking-views-without-shiny.html
@@ -160,13 +179,14 @@ topic_avg <-
   add_bars(x = ~Score, y = ~factor(variable, levels = variable), hoverinfo = "x+y") %>%
   layout(
     barmode = "overlay",
-    xaxis = list(title = "Average Topic Score"),
+    xaxis = list(title = ""), # "Average Topic Score" ... this is held off to not complicate the display
     yaxis = list(title = "")) 
 topic_trend <-
   base %>%
   mutate(Score = round(value, 1)) %>% 
   add_lines(x = ~Date, y = ~Score, alpha = 0.3, text = ~variable, hoverinfo = "text") %>%
-  layout(xaxis = list(title = ""))
+  layout(xaxis = list(title = "",
+                      showticklabels = FALSE)) # Only allowing the status plot to have the x-axis
 
 topic_viz <- 
   subplot(topic_avg, topic_trend, 
@@ -176,24 +196,58 @@ topic_viz <-
   highlight(persistent = TRUE, selectize = TRUE, dynamic = TRUE)
 save(topic_viz, file = "img/interactive_topic_viz.Rda")
 
+### Generate interactive status involvement plot ------------------------------#
 
-### Create fully interactive analog for case-level visualization --------------#
+# Note: this is generated using ggplotly above
+
+# Don't run the below code--it still requires more development to be a direct
+# implementation of plotly for the status graph
+if (FALSE){
+  plotly_status <- 
+    plot_ly(filter(dt_status, value == 1) %>% 
+              mutate(Treat_time = ifelse(color == "Treat", time, 0),
+                     NonTreat_time = ifelse(color == "Non-Treat", time, 0)),
+            x = ~Date, y = ~fStatus, type = 'bar', marker = list(color = 'rgba(1,1,1, 0.0)')) %>%
+    add_trace(x = ~Treat_time,    marker = list(color = 'rgba(55, 128, 191, 0.7)',
+                                                line = list(color = 'rgba(55, 128, 191, 0.7)',
+                                                            width = 2))) %>%
+    add_trace(x = ~NonTreat_time, marker = list(color = 'rgba(219, 64, 82, 0.7)',
+                                                line = list(color = 'rgba(219, 64, 82, 1.0)',
+                                                            width = 2))) %>% 
+    layout(title = 'Status Involvements',
+           xaxis = list(title = ""),
+           yaxis = list(title = ""),
+           barmode = 'stack',
+           # paper_bgcolor = 'rgba(245, 246, 249, 1)',
+           # plot_bgcolor = 'rgba(245, 246, 249, 1)',
+           showlegend = FALSE)  
+}
+
+
+### Assemble the interactive elements -----------------------------------------#
+
 # See this link for arranging subplots: https://plotly-book.cpsievert.me/merging-plotly-objects.html
 # Note the ability to use "plotly_empty()" to fill a space in the grid with a blank
-plotly_sent   <- ggplotly(plot_sent)
-plotly_topic  <- ggplotly(plot_topic)
-plotly_status <- ggplotly(plot_status)
-  # /!\ Note that certain formatting elements like geom_GeomLabelRepel need to be 
-  # reimplemented in plotly syntax proper
-  # /!\ The labels of the field names should also be made more readable
-subplot(plotly_sent, plotly_topic, plotly_status, nrows = 3)
 
 # Attempt inclusion of dynamic topic selection
 subplot(plotly_empty(), plotly_sent,
-        topic_avg, topic_trend, 
+        topic_avg,      topic_trend, 
         plotly_empty(), plotly_status,
-        nrows = 3,
-        titleX = TRUE, widths = c(0.3, 0.7)) %>% 
+        nrows = 3, widths = c(0.3, 0.7),
+        titleX = TRUE) %>%  # , shareX = TRUE
   layout(margin = list(l = 120)) %>%
   hide_legend() %>%
   highlight(persistent = TRUE, selectize = TRUE, off = "plotly_deselect")
+
+subplot(plotly_sent,
+        topic_trend, 
+        plotly_status,
+        nrows = 3,
+        titleX = TRUE) %>% #, shareX = TRUE
+  layout(margin = list(l = 120)) %>%
+  hide_legend()
+
+# /!\ Additional to dos for formatting:
+# - need to get aspect ratio right
+# - brushing for interactive topic visualization isn't being preserved
+# - need to rotate the dates in the status figure
