@@ -7,6 +7,7 @@ output:
     storyboard: true
     social: menu
     source: embed
+    vertical_layout: fill
     logo: img/AGC-triangle-small.png
     css: flexdash.css
 ---
@@ -42,16 +43,13 @@ cn <- function(x) colnames(x)
 </ul>
 </font>
 
-### Case-Level Visualization
+### Case-Level Visualization {data-commentary-width=500}
 
-<!-- <img width = "30%" src = "img/viz_sentiment-cans-status.png"> -->
-```{r place interactive topic viz, out.width='50%'}
-load("img/interactive_topic_viz.Rda")
-topic_viz
-```
+<img src = "img/viz_sentiment-cans-status.png">
 
 ***
 
+<font size = "3">
 <ul>
 <li> This figure combines
   <ul>
@@ -63,6 +61,18 @@ topic_viz
 <li> Topic and sentiment scores can help supervisors quickly review timely characteristics of individual cases or a worker's entire caseload
 <li> Persistence of key topics can raise flags to QA teams to complete additional modules, e.g. related to housing concerns
 </ul>
+</font>
+
+### Interactive Topic Visualization
+
+```{r place interactive topic viz}
+load("img/interactive_topic_viz.Rda")
+topic_viz
+```
+
+***
+
+A simulation of an interactive topic prevalence+trend figure for the case-level visualization
 
 ### System-Level Trajectory Visualization {data-commentary-width=500}
 
