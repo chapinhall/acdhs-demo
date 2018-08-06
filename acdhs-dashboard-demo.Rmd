@@ -77,7 +77,7 @@ A simulation of an interactive topic prevalence+trend figure for the case-level 
 </font>
 
 
-### Macro Planning -- Client Query Table {data-commentary-width=500}
+### Macro Planning -- Client Query Table {data-commentary-width=400}
 
 ```{r generate macro planning data}
 mpn <- 500
@@ -241,7 +241,7 @@ This map identifies geographies with the greatest need for attention by topic. U
 This helps identify volume and type of needs, along with distribution. With additional layers showing the distribution of service facitilies it can be possible to also see how demand and supply of services can be matched.
 </font>
 
-### Macro Planning -- Trajectory Visualization and Type Identifiation {data-commentary-width=500}
+### Macro Planning -- Trajectory Visualization and Type Identifiation {data-commentary-width=400}
 
 ```{r generate prevalence figure to match trajectory viz}
 df <- 
