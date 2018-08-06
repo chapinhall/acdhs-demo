@@ -72,52 +72,12 @@ topic_viz
 
 ***
 
-A simulation of an interactive topic prevalence+trend figure for the case-level visualization
-
-### System-Level Trajectory Visualization {data-commentary-width=500}
-
-```{r generate prevalence figure to match trajectory viz}
-df <- 
-  data.frame(clus = c("Cluster 1", "Cluster 2", "Cluster 3"),
-             freq = c(5442, 679, 227)) %>% 
-  mutate(pct = freq/sum(freq),
-         label = paste0("n = ", prettyNum(freq, big.mark = ",")))
-myplot <-
-  ggplot(df, aes(x = clus, y = pct, fill = clus)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  geom_text(aes(label = label), vjust = 1) +
-  scale_y_continuous(labels = percent) +
-  labs(title = "Prevalence of Cluster Types in Population",
-       x = "", y = "% of Population") +
-  theme(legend.position = "none",
-        axis.title = element_text(size = 12),
-        axis.text = element_text(size = 11))
-ggsave("img/dually-involved-youth_traj-viz_3-cluster--prevalence.png")
-```
-
-<!-- ![](img/dually-involved-youth_traj-viz_3-cluster.png) -->
-<img width = "45%" hspace = "20" src = "img/dually-involved-youth_traj-viz_3-cluster.png">
-<img width = "35%" hspace = "20" src = "img/dually-involved-youth_traj-viz_3-cluster--prevalence.png">
-
-  
-***
-
 <font size = "3">
-<ul>
-<li> Trajectory visualizations can show pathways of cases through institutional contacts
-<li> Each individual trajectory is shown as a (narrow) horizontal line. Each subplot shows hundreds of individual cases, with cases sorted by their starting state, then the type and duration of the state that follows.
-<li> These plots show the starting age, duration, sequence, and number of spells for different institutional contacts
-<li> The multiple figures show different distinct cluster patterns. In this example:
-  <ul>
-  <li> "Cluster 1" represents individuals with short involvements which start at a range of ages
-  <li> "Cluster 2" represents individuals with long, unbroken stints in child welfare cases. A third of this group has out-of-home placements, almost always at early ages.
-  <li> "Cluster 3"--the smallest group--represents individuals with long stints of out-of home placements, generally starting at early ages.
-  </ul>
-<li> These institutional involvement cluster types can also be displayed in tables or maps
-</ul>
+A simulation of an interactive topic prevalence+trend figure for the case-level visualization
 </font>
 
-### Macro-Planning
+
+### Macro Planning -- Client Query Table {data-commentary-width=500}
 
 ```{r generate macro planning data}
 mpn <- 500
@@ -172,7 +132,20 @@ datatable(mp,
 
 *** 
 
-### System-Level Topic Map
+<font size = "3">
+Both sentiment and topical scores can be used for macro planning related to:
+
+* **Volume** -- who are the children, youth, and families who would best benefit from a new intervention
+* **Needs** -- what are the classes of service need within this population
+* **Distribution** -- where is the service need located
+* **Service Matching** -- how do we match families to the most appropriate services
+
+For example, this type of table allows a user to filter clients by geographic regions (or other case characteristics), select those with combinations of needs, sort by sentiment, and export this information to share with other role-players.
+</font>
+
+
+
+### Macro Planning -- Topic Scores by Geography {data-commentary-width=500}
 
 ```{r display zipcode map with topic layers}
 # Get zipcode boundary data
@@ -255,6 +228,58 @@ leaflet(data = zips) %>% # width = "100%"
 
 ***
 
-* Dynamic maps offer panning, zooming, and "popup" annotations that allow exploration of geographic trends in various case topics and combinations thereof, such as "opiod" and "overdose"
-* This map shows an example of multiple topic layers for Alleghency county zip codes, with more information available through clicking 
+<font size = "3">
+Both sentiment and topical scores can be used for macro planning related to:
 
+* **Volume** -- who are the children, youth, and families who would best benefit from a new intervention
+* **Needs** -- what are the classes of service need within this population
+* **Distribution** -- where is the service need located
+* **Service Matching** -- how do we match families to the most appropriate services
+
+This map identifies geographies with the greatest need for attention by topic. Users are able to pan, zoom, and click for pop-up annotations with additional contextual information.
+
+This helps identify volume and type of needs, along with distribution. With additional layers showing the distribution of service facitilies it can be possible to also see how demand and supply of services can be matched.
+</font>
+
+### Macro Planning -- Trajectory Visualization and Type Identifiation {data-commentary-width=500}
+
+```{r generate prevalence figure to match trajectory viz}
+df <- 
+  data.frame(clus = c("Cluster 1", "Cluster 2", "Cluster 3"),
+             freq = c(5442, 679, 227)) %>% 
+  mutate(pct = freq/sum(freq),
+         label = paste0("n = ", prettyNum(freq, big.mark = ",")))
+myplot <-
+  ggplot(df, aes(x = clus, y = pct, fill = clus)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = label), vjust = 1) +
+  scale_y_continuous(labels = percent) +
+  labs(title = "Prevalence of Cluster Types in Population",
+       x = "", y = "% of Population") +
+  theme(legend.position = "none",
+        axis.title = element_text(size = 12),
+        axis.text = element_text(size = 11))
+ggsave("img/dually-involved-youth_traj-viz_3-cluster--prevalence.png")
+```
+
+<!-- ![](img/dually-involved-youth_traj-viz_3-cluster.png) -->
+<img width = "45%" hspace = "20" src = "img/dually-involved-youth_traj-viz_3-cluster.png">
+<img width = "35%" hspace = "20" src = "img/dually-involved-youth_traj-viz_3-cluster--prevalence.png">
+
+  
+***
+
+<font size = "3">
+<ul>
+<li> Trajectory visualizations can show pathways of cases through institutional contacts
+<li> Each individual trajectory is shown as a (narrow) horizontal line. Each subplot shows hundreds of individual cases, with cases sorted by their starting state, then the type and duration of the state that follows.
+<li> These plots show the starting age, duration, sequence, and number of spells for different institutional contacts
+<li> The multiple figures show different distinct cluster patterns. In this example:
+  <ul>
+  <li> "Cluster 1" represents individuals with short involvements which start at a range of ages
+  <li> "Cluster 2" represents individuals with long, unbroken stints in child welfare cases. A third of this group has out-of-home placements, almost always at early ages.
+  <li> "Cluster 3"--the smallest group--represents individuals with long stints of out-of home placements, generally starting at early ages.
+  </ul>
+<li> These institutional involvement cluster types can also be displayed in tables or maps
+</ul>
+</font>

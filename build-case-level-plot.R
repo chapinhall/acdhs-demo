@@ -179,14 +179,14 @@ topic_avg <-
   add_bars(x = ~Score, y = ~factor(variable, levels = variable), hoverinfo = "x+y") %>%
   layout(
     barmode = "overlay",
-    xaxis = list(title = ""), # "Average Topic Score" ... this is held off to not complicate the display
+    xaxis = list(title = "Average Topic Score"), # may remove this when putting it into the joint sent/topic/status viz
     yaxis = list(title = "")) 
 topic_trend <-
   base %>%
   mutate(Score = round(value, 1)) %>% 
   add_lines(x = ~Date, y = ~Score, alpha = 0.3, text = ~variable, hoverinfo = "text") %>%
-  layout(xaxis = list(title = "",
-                      showticklabels = FALSE)) # Only allowing the status plot to have the x-axis
+  layout(xaxis = list(title = ""))
+                      # showticklabels = FALSE)) # May select this option when putting it into the joint sentiment/topic/status viz
 
 topic_viz <- 
   subplot(topic_avg, topic_trend, 
